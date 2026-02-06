@@ -89,12 +89,24 @@ async () => {
                 }
 
                 // 2. 寻找匹配的规则
-                const tracker = torrent.tracker || "";
+                // 获取magnet中的tracker
+                const magnetUri = torrent.originProp.magnet_uri || "";
+                // 从magnet中提取tracker
+                let trackersTemp = magnetUri.match(/tr=([^&]+)/g) || [];
+                // 去掉tr=
+                trackersTemp = trackersTemp.map(t => t.replace("tr=", ""));
+                // 转义url编码
+                trackersTemp = trackersTemp.map(t => decodeURIComponent(t));
                 let matchedKeyword = null;
 
                 for (const keyword of Object.keys(LIMIT_RULES)) {
-                    if (tracker.includes(keyword)) {
-                        matchedKeyword = keyword;
+                    for (const tracker of trackersTemp) {
+                        if (tracker.includes(keyword)) {
+                            matchedKeyword = keyword;
+                            break;
+                        }
+                    }
+                    if (matchedKeyword) {
                         break;
                     }
                 }
