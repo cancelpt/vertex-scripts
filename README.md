@@ -38,9 +38,11 @@ _这里的 Vertex 是 [Vertex - 适用于 PT 玩家的追剧刷流一体化综�
 
 ### 为种子限速
 
-这个脚本通常用在 RSS 任务中，配合 qBittorrent 的“添加后不开始下载”功能、Vertex 的进种暂停（尬黑了，Vertex 进种有限速功能）、MoviePilot 的自动订阅功能使用（**MoviePilot 进种后会直接下载，脚本可能来不及限速**）。脚本会遍历指定下载器中的所有种子（如果设置为 ONLY_PAUSED=true，则只遍历暂停下载的种子，即 qBittorrent 的 state=pausedDL），根据种子的 tracker URL 关键词配置来设置上传和下载限速。
+> *作者最推荐的脚本之一*
+> 
+> 实际上 Vertex 的 RSS 无法保证种子进种——RSS 更新间隔太久、下载器任务太多、下载器速度太快都可能拒绝进种。对于那些一定需要下载种子情形，例如订阅的资源、新种少的站点，可以转回用 qBittorrent 的 RSS 下载；但 qBittorrent 的 RSS 下载无法设置限速，在盒子上不限速肯定超速。
 
-**注意：** 如果设置为 ONLY_PAUSED=false，则脚本会获取每个种子的 tracker URL，这是比较耗费性能的，请谨慎使用。
+这个脚本通常用在 RSS 任务中，配合 qBittorrent RSS 的“添加后不开始下载”功能、Vertex 的进种暂停（尬黑了，Vertex 进种有限速功能）、MoviePilot 的自动订阅功能使用（**MoviePilot 进种后会直接下载，脚本可能来不及限速**）。脚本会遍历指定下载器中的所有种子（如果设置为 ONLY_PAUSED=true，则只遍历暂停下载的种子，即 qBittorrent 的 state=pausedDL），根据种子的 tracker URL 关键词（从 magnet url 中提取的）配置来设置上传和下载限速。
 
 ## netcup 限流情况同步参考方案
 
@@ -55,3 +57,22 @@ _这里的 Vertex 是 [Vertex - 适用于 PT 玩家的追剧刷流一体化综�
 ```
 
 然后使用 vertex 的定时脚本 `task-scripts/更新NC服务器流量状态.js` 将更新到 vertex 的 redis 中，在 `rss-rules/允许规则-按剩余空间进种-额外netcup支持.js` 中进行从 redis 中读取数据进行限流判断。
+
+
+## FAQ
+
+### Vertex 信息级别的日志输出弹出错误： `spawnSync /bin/sh ENOBUFS`
+
+疑似是日志文件过大，导致输出错误。
+
+对于 Docker 部署的 vertex，进入 vertex 容器：
+
+```
+docker exec -it vertex /bin/bash
+```
+
+然后清空`/app/vertex/logs/app-info.log`日志文件
+
+```
+truncate -s 0 /app/vertex/logs/app-info.log
+```

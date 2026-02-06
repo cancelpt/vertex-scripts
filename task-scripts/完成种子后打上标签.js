@@ -66,7 +66,7 @@ async () => {
                 if (currentTags.includes(TARGET_TAG)) {
                     continue;
                 }
-                logger.debug(`处理种子：${torrent.hash}，标签：${torrent.tags}, dump: ${JSON.stringify(torrent)}`);
+                // logger.debug(`处理种子：${torrent.hash}，标签：${torrent.tags}, dump: ${JSON.stringify(torrent)}`);
 
                 // 4. Check time
                 // torrent.completion
