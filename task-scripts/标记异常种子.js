@@ -136,7 +136,7 @@ async () => {
                         }
                     }
                 } catch (error) {
-                    logger.info(`标记异常种子：处理种子 ${torrent.hash} 时出错：`, error);
+                    logger.error(`标记异常种子：处理种子 ${torrent.hash} 时出错：`, error);
                 }
             }
         }
