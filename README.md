@@ -44,11 +44,27 @@ _这里的 Vertex 是 [Vertex - 适用于 PT 玩家的追剧刷流一体化综�
 
 这个脚本通常用在 RSS 任务中，配合 qBittorrent RSS 的“添加后不开始下载”功能、Vertex 的进种暂停（尬黑了，Vertex 进种有限速功能）、MoviePilot 的自动订阅功能使用（**MoviePilot 进种后会直接下载，脚本可能来不及限速**）。脚本会遍历指定下载器中的所有种子（如果设置为 ONLY_PAUSED=true，则只遍历暂停下载的种子，即 qBittorrent 的 state=pausedDL），根据种子的 tracker URL 关键词（从 magnet url 中提取的）配置来设置上传和下载限速。
 
-## netcup 限流情况同步参考方案
+## netcup 限流情况同步方案
 
-额外 netcup 支持需要编写一个脚本（这里不提供，可以参考 python 库`from netcup import update_nc_state`来实现）来更新 netcup 服务器的限流情况，如果限流，则需要在本地创建一个`json`文件含有 下载器 ID 和限流情况：
 
+### 直接从 SCP 读取服务器限流情况的方案
+
+额外 netcup 支持可以使用定时脚本 `task-scripts/获取NC限速情况.js`（需在环境变量或脚本内编辑配置登录账号和服务器映射等信息）来检测 netcup 服务器的限流情况：
+
+```js
+    // 配置
+    const LOGINNAME = process.env.NC_LOGINNAME || '你的nc scp登录名';
+    const PASSWORD = process.env.NC_PASSWORD || '你的nc scp密码';
+    const VSERVER_MAP = {
+        '你的nc vserver名，v开头的，例如v220250***': '82acd2c6（其在vt中对应的id）'
+    };
 ```
+
+**警告！！！**：将 [netcup SCP](https://www.servercontrolpanel.de/SCP/Home) 登录名和密码写入脚本或者 vertex 容器的环境变量有安全风险，因此带来的风险需要你自己负责。
+
+该脚本会在本地创建一个 `json` 文件含有 下载器 ID 和限流情况：
+
+```json
 {
     "82acd2c6": {
         "has_high_speed": true // “有”高速 直译
@@ -57,6 +73,10 @@ _这里的 Vertex 是 [Vertex - 适用于 PT 玩家的追剧刷流一体化综�
 ```
 
 然后使用 vertex 的定时脚本 `task-scripts/更新NC服务器流量状态.js` 将更新到 vertex 的 redis 中，在 `rss-rules/允许规则-按剩余空间进种-额外netcup支持.js` 中进行从 redis 中读取数据进行限流判断。
+
+### 根据下载器流量计算的方案
+
+当然，我还提供了一个没那么准确的脚本 `task-scripts/自动计算NC流量.js`，它会计算以 24 小时为窗口的下载器所用流量，并输出到日志和 `json` 文件中。netcup 的实际限流并不以此为标准，但是，使用这个脚本控制进种的情况下，不会触发限流，如果你出于安全考虑或者受限实在不愿意使用前面的 `task-scripts/更新NC服务器流量状态.js`，也可以使用这个脚本。
 
 
 ## FAQ
